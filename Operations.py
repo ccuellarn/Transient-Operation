@@ -11,18 +11,43 @@ from astropy.coordinates import SkyCoord, EarthLocation, AltAz
 from astropy.time import Time
 from astropy import units as u
 
-def cargar_datos(nombre_archivo:str)->pd.DataFrame:
-    """
-    Recibirá el nombre del archivo del cual se realizará el análisis para cargar los datos
-    en un formato que permita el programa.
-    ----------
-    PARÁMETROS:
-    nombre_archivo : str
-        nombre del arcivo con el formato: 'nombre.csv'. 
-    -------
+#Convert the DMS format to degrees
+def ConvertLaLo(l):
+    l_ = l.split('-')
+    D = float(l_[0])
+    M = float(l_[1])
+    S = float(l_[2])
+    dir = l_[3]
+    r = D + (M/60) + (S/3600)
+    if dir=='W' or dir=='S':
+        return r*(-1)
+    else:
+        return r
+
+def Observations(longitude, latitude, RA, DEC, Date):
+    time_obs = Time(Date)
+    lat_conv = ConvertLaLo(latitude)
+    lon_conv = ConvertLaLo(longitude)
+    observer = EarthLocation(lat=lat_conv*u.deg, lon=lon_conv*u.deg)
+    Conditionals = []
+
+    for i in range(0,len(RA)):
+
+        celestial_coord = SkyCoord(ra=RA[i], dec=DEC[i]) #mantain the degrees units
+
+        # Calculate the coordenates AltAz for the time and observer
+        frame_altaz = AltAz(obstime=time_obs, location=observer)
+        altaz_coord = celestial_coord.transform_to(frame_altaz) #Transform for the J200 coordinate system for altaz
     
-    Retorna el DataFrame del archivo.
-    """
-    datos = nombre_archivo
-    return datos
+        # Determinate if its observable (altitude > 0 degrees), return a boolean
+        Conditionals.append(altaz_coord.alt > 0*u.deg)
+
+    #Put everything on a dataframe in the format for better reading
+    Data = pd.DataFrame([])
+    Data.style.set_caption(Date)
+    Data['Observable'] = Conditionals
+    Data['RA'] = RA
+    Data['Dec'] = DEC
+
+    return Data
 

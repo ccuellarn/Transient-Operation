@@ -1,33 +1,38 @@
 import Operations as mod
 import pandas as pd
 
-def ejecutar_cargar_datos() -> pd.DataFrame:
-    ruta = input("Ingrese Latitud del observador: ")
-    resultados = mod.cargar_datos(ruta)
+def Observations_mod() -> pd.DataFrame:
+    longitude = input("Longitude for observer in 'DD-MM-SS-(N,S,W,E)' format: ")
+    latitude = input("Latitude for observer in 'DD-MM-SS-(N,S,W,E)' format: ")
+    RA = input("List of right ascension in 'hmsdms' format: ")
+    DEC = input("List of declination in 'hmsdms' format: ")
+    Date = input("Date of today in the format 'YYYY-MM-DD HH:MM:SS' ")
+
+    resultados = mod.Observations(longitude, latitude, RA, DEC, Date)
     print("Latitud encontrada")
     return resultados
 
     
-def mostrar_menu() -> None:
-    print("\nMenú de opciones:")
-    print("1. Cargar datos Dec")
-    print("2. Salir")
+def show_menu() -> None:
+    print("\nOptions:")
+    print("1. Determine if its observable")
+    print("2. Shut off")
 
 
-def iniciar_aplicacion() -> None:
-    continuar = True
+def iniciate_app() -> None:
+    go = True
 
-    while continuar:
-        mostrar_menu()
+    while go:
+        show_menu()
 
-        opcion = int(input("Ingrese la opción que desea ejecutar: "))
-        if opcion == 1:
-            datos = ejecutar_cargar_datos()
-        elif opcion == 2:
-            continuar = False
+        option = int(input("Number of option: "))
+        if option == 1:
+            Observations_mod()
+        elif option == 2:
+            go = False
         else:
             print(
-                "Ingresó una opción no válida, por favor elija una de las opciones del menú")
+                "Choose, you or you crew...")
 
 
-iniciar_aplicacion()
+iniciate_app()
