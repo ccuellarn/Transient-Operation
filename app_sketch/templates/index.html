@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Llamar a Python desde HTML</title>
+</head>
+<body>
+    <h1>Ejecutar función Python</h1>
+    
+    <form id="miFormulario">
+        <input type="text" name="dato" placeholder="Ingresa algo..." required>
+        <button type="submit">Enviar</button>
+    </form>
+
+    <div id="resultado"></div>
+
+    <!-- JavaScript para enviar datos a Flask -->
+    <script>
+        document.getElementById("miFormulario").addEventListener("submit", function(e) {
+            e.preventDefault();
+            
+            fetch("/ejecutar", {
+                method: "POST",
+                body: new FormData(this)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("resultado").innerText = data.resultado;
+            });
+        });
+    </script>
+</body>
+</html>
