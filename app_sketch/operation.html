@@ -1,46 +1,64 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Astronomy Observation Planner</title>
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <title>Astro Observation Planner</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
             margin: 0;
             padding: 20px;
-            background-color: #f0f2f5;
+            background-color: #f4f4f9;
             color: #333;
         }
         .container {
-            max-width: 1200px;
+            max-width: 900px;
             margin: 0 auto;
-        }
-        header {
-            background-color: #1a237e;
-            color: white;
+            background: #fff;
             padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
             text-align: center;
+            color: #2c3e50;
         }
-        .panel {
-            background-color: white;
-            border-radius: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            padding: 20px;
+        .form-group {
+            margin-bottom: 15px;
         }
-        h1, h2, h3 {
-            color: #1a237e;
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        #result {
+            margin-top: 20px;
+            overflow-x: auto;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 15px 0;
+            margin-top: 20px;
         }
         th, td {
             border: 1px solid #ddd;
@@ -48,699 +66,131 @@
             text-align: left;
         }
         th {
-            background-color: #e8eaf6;
+            background-color: #f2f2f2;
         }
-        input, select {
-            width: 100%;
-            padding: 8px;
-            margin: 5px 0;
-            box-sizing: border-box;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #3949ab;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-        button:hover {
-            background-color: #303f9f;
-        }
-        .result {
-            background-color: #f5f5f5;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-            overflow-x: auto;
-        }
-        .loading {
-            display: none;
-            color: #3949ab;
-            font-weight: bold;
-            padding: 10px;
-            text-align: center;
-        }
-        .tabs {
-            display: flex;
-            margin-bottom: 20px;
-        }
-        .tab {
-            padding: 10px 20px;
-            background-color: #e8eaf6;
-            cursor: pointer;
-            border-radius: 5px 5px 0 0;
-            margin-right: 5px;
-        }
-        .tab.active {
-            background-color: #3949ab;
-            color: white;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        #alertData {
-            width: 100%;
-            height: 150px;
+        .note {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>Astronomy Observation Planner</h1>
-            <p>Planificador de observaciones astronómicas con cálculo de tiempos y visibilidad</p>
-        </header>
-
-        <div class="loading" id="loadingIndicator">
-            Cargando Pyodide y dependencias (esto puede tomar unos minutos)...
-        </div>
-
-        <div id="appContent" style="display: none;">
-            <div class="tabs">
-                <div class="tab active" onclick="switchTab('deltaTimeTab')">Delta Time</div>
-                <div class="tab" onclick="switchTab('createTimeTab')">Create Time</div>
-                <div class="tab" onclick="switchTab('observationsTab')">Observations</div>
-                <div class="tab" onclick="switchTab('expositionTab')">Exposition Time</div>
-                <div class="tab" onclick="switchTab('orderLimitsTab')">Order Limits</div>
+        <h1>Astro Observation Planner</h1>
+        <form id="observationForm">
+            <div class="form-group">
+                <label for="observer">Observer (lat, lon en grados):</label>
+                <input type="text" id="observer" placeholder="Ejemplo: 19.4, -99.2" required>
+                <span class="note">Separados por coma (latitud, longitud).</span>
             </div>
-
-            <!-- Delta Time Tab -->
-            <div id="deltaTimeTab" class="tab-content active">
-                <div class="panel">
-                    <h2>Delta Time Calculator</h2>
-                    <form id="deltaTimeForm">
-                        <table>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Value</th>
-                            </tr>
-                            <tr>
-                                <td>Start Date (YYYY-MM-DD HH:MM:SS)</td>
-                                <td><input type="text" id="deltaDate_i" value="2023-01-01 20:00:00" required></td>
-                            </tr>
-                            <tr>
-                                <td>End Date (YYYY-MM-DD HH:MM:SS)</td>
-                                <td><input type="text" id="deltaDate_f" value="2023-01-02 04:00:00" required></td>
-                            </tr>
-                            <tr>
-                                <td>Time Scale</td>
-                                <td>
-                                    <select id="deltaTimeScale">
-                                        <option value="s">Seconds</option>
-                                        <option value="m">Minutes</option>
-                                        <option value="h" selected>Hours</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Scale Value</td>
-                                <td><input type="number" id="deltaScaleValue" value="1" min="0.1" step="0.1" required></td>
-                            </tr>
-                        </table>
-                        <button type="submit">Calculate Delta Time</button>
-                    </form>
-                    <div id="deltaTimeResult" class="result"></div>
-                </div>
+            
+            <div class="form-group">
+                <label for="date_i">Fecha inicial (YYYY-MM-DD HH:MM:SS):</label>
+                <input type="text" id="date_i" placeholder="Ejemplo: 2024-01-01 20:00:00" required>
             </div>
-
-            <!-- Create Time Tab -->
-            <div id="createTimeTab" class="tab-content">
-                <div class="panel">
-                    <h2>Create Time Around Midnight</h2>
-                    <form id="createTimeForm">
-                        <table>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Value</th>
-                            </tr>
-                            <tr>
-                                <td>Start Date (YYYY-MM-DD HH:MM:SS)</td>
-                                <td><input type="text" id="createDate_i" value="2023-01-01 20:00:00" required></td>
-                            </tr>
-                            <tr>
-                                <td>End Date (YYYY-MM-DD HH:MM:SS)</td>
-                                <td><input type="text" id="createDate_f" value="2023-01-02 04:00:00" required></td>
-                            </tr>
-                            <tr>
-                                <td>Time Scale</td>
-                                <td>
-                                    <select id="createTimeScale">
-                                        <option value="s">Seconds</option>
-                                        <option value="m">Minutes</option>
-                                        <option value="h" selected>Hours</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Scale Value</td>
-                                <td><input type="number" id="createScaleValue" value="1" min="0.1" step="0.1" required></td>
-                            </tr>
-                        </table>
-                        <button type="submit">Create Time Array</button>
-                    </form>
-                    <div id="createTimeResult" class="result"></div>
-                </div>
+            
+            <div class="form-group">
+                <label for="date_f">Fecha final (YYYY-MM-DD HH:MM:SS):</label>
+                <input type="text" id="date_f" placeholder="Ejemplo: 2024-01-02 06:00:00" required>
             </div>
-
-            <!-- Observations Tab -->
-            <div id="observationsTab" class="tab-content">
-                <div class="panel">
-                    <h2>Observation Classifier</h2>
-                    <form id="observationsForm">
-                        <table>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Value</th>
-                            </tr>
-                            <tr>
-                                <td>Observer Latitude (degrees)</td>
-                                <td><input type="number" id="obsLat" value="19.4" step="0.1" required></td>
-                            </tr>
-                            <tr>
-                                <td>Observer Longitude (degrees)</td>
-                                <td><input type="number" id="obsLon" value="-99.2" step="0.1" required></td>
-                            </tr>
-                            <tr>
-                                <td>Start Date (YYYY-MM-DD HH:MM:SS)</td>
-                                <td><input type="text" id="obsDate_i" value="2023-01-01 20:00:00" required></td>
-                            </tr>
-                            <tr>
-                                <td>End Date (YYYY-MM-DD HH:MM:SS)</td>
-                                <td><input type="text" id="obsDate_f" value="2023-01-02 04:00:00" required></td>
-                            </tr>
-                            <tr>
-                                <td>Time Scale</td>
-                                <td>
-                                    <select id="obsTimeScale">
-                                        <option value="s">Seconds</option>
-                                        <option value="m">Minutes</option>
-                                        <option value="h" selected>Hours</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Scale Value</td>
-                                <td><input type="number" id="obsScaleValue" value="1" min="0.1" step="0.1" required></td>
-                            </tr>
-                            <tr>
-                                <td>Range (number of objects)</td>
-                                <td><input type="number" id="obsRange" value="10" min="1" required></td>
-                            </tr>
-                            <tr>
-                                <td>Altitude Limit (degrees)</td>
-                                <td><input type="number" id="obsLimit" value="33" min="0" max="90" required></td>
-                            </tr>
-                            <tr>
-                                <td>Minimum Magnitude</td>
-                                <td><input type="number" id="obsMmin" value="12.5" step="0.1" required></td>
-                            </tr>
-                            <tr>
-                                <td>Alert Data (CSV format)</td>
-                                <td>
-                                    <textarea id="alertData" required>
-Label,RA,DEC,Mag
-1,88.8,7.4,12.3
-2,92.1,8.7,11.8
-3,95.4,10.2,13.1
-4,98.7,11.5,12.7
-5,102.0,12.8,11.9
-6,105.3,14.1,12.5
-7,108.6,15.4,13.0
-8,111.9,16.7,12.2
-9,115.2,18.0,11.7
-10,118.5,19.3,12.9
-                                    </textarea>
-                                </td>
-                            </tr>
-                        </table>
-                        <button type="submit">Classify Observations</button>
-                    </form>
-                    <div id="observationsResult" class="result"></div>
-                </div>
+            
+            <div class="form-group">
+                <label for="timescale">Escala de tiempo (s, m, h) y valor:</label>
+                <input type="text" id="timescale" placeholder="Ejemplo: h,1" required>
+                <span class="note">Formato: escala,valor (ej: 'h,1' para horas).</span>
             </div>
-
-            <!-- Exposition Time Tab -->
-            <div id="expositionTab" class="tab-content">
-                <div class="panel">
-                    <h2>Exposition Time Calculator</h2>
-                    <form id="expositionTimeForm">
-                        <table>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Value</th>
-                            </tr>
-                            <tr>
-                                <td>Constant K</td>
-                                <td><input type="number" id="expK" value="30" step="0.1" required></td>
-                            </tr>
-                            <tr>
-                                <td>Object Magnitude (m)</td>
-                                <td><input type="number" id="expM" value="12.5" step="0.1" required></td>
-                            </tr>
-                            <tr>
-                                <td>Reference Magnitude (m_ref)</td>
-                                <td><input type="number" id="expMref" value="10" step="0.1" required></td>
-                            </tr>
-                        </table>
-                        <button type="submit">Calculate Exposition Time</button>
-                    </form>
-                    <div id="expositionTimeResult" class="result"></div>
-                </div>
+            
+            <div class="form-group">
+                <label for="limit">Límite de altitud (grados):</label>
+                <input type="number" id="limit" placeholder="Ejemplo: 33" required>
             </div>
-
-            <!-- Order Limits Tab -->
-            <div id="orderLimitsTab" class="tab-content">
-                <div class="panel">
-                    <h2>Observation Order Planner</h2>
-                    <p>Note: This function requires first running the Observations function to get the data.</p>
-                    <form id="orderLimitsForm">
-                        <table>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Value</th>
-                            </tr>
-                            <tr>
-                                <td>Range (number of objects)</td>
-                                <td><input type="number" id="orderRange" value="10" min="1" required></td>
-                            </tr>
-                            <tr>
-                                <td>Maximum Exposition Time (seconds)</td>
-                                <td><input type="number" id="orderTexp" value="300" min="1" required></td>
-                            </tr>
-                            <tr>
-                                <td>Constant K</td>
-                                <td><input type="number" id="orderK" value="30" step="0.1" required></td>
-                            </tr>
-                            <tr>
-                                <td>Reference Magnitude (m_ref)</td>
-                                <td><input type="number" id="orderMref" value="10" step="0.1" required></td>
-                            </tr>
-                        </table>
-                        <button type="submit">Plan Observation Order</button>
-                    </form>
-                    <div id="orderLimitsResult" class="result"></div>
-                </div>
+            
+            <div class="form-group">
+                <label for="m_min">Magnitud mínima (m_min):</label>
+                <input type="number" id="m_min" step="0.1" placeholder="Ejemplo: 10.5" required>
             </div>
+            
+            <div class="form-group">
+                <label for="K">Constante K (segundos):</label>
+                <input type="number" id="K" placeholder="Ejemplo: 30" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="m_ref">Magnitud de referencia (m_ref):</label>
+                <input type="number" id="m_ref" step="0.1" placeholder="Ejemplo: 10.0" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="t_expo">Tiempo máximo de exposición (segundos):</label>
+                <input type="number" id="t_expo" placeholder="Ejemplo: 300" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="many">Número de objetos (many):</label>
+                <input type="number" id="many" placeholder="Ejemplo: 50" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="alerts">Datos de alertas (JSON):</label>
+                <textarea id="alerts" rows="4" placeholder='Ejemplo: [{"RA": 120.5, "DEC": 18.3, "Mag": 9.5}, ...]' required></textarea>
+                <span class="note">Formato JSON con RA (grados), DEC (grados) y Mag.</span>
+            </div>
+            
+            <button type="button" onclick="calculate()">Calcular Observaciones</button>
+        </form>
+        
+        <div id="result">
+            <h2>Resultados:</h2>
+            <div id="dataframeResult"></div>
         </div>
     </div>
 
     <script>
-        // Global variables
-        let pyodide;
-        let observationData = null;
+        function calculate() {
+            // Simulación de procesamiento (en un caso real, esto se enviaría a un backend en Python)
+            const observer = document.getElementById('observer').value.split(',').map(Number);
+            const date_i = document.getElementById('date_i').value;
+            const date_f = document.getElementById('date_f').value;
+            const timescale = document.getElementById('timescale').value.split(',');
+            const limit = parseFloat(document.getElementById('limit').value);
+            const m_min = parseFloat(document.getElementById('m_min').value);
+            const K = parseFloat(document.getElementById('K').value);
+            const m_ref = parseFloat(document.getElementById('m_ref').value);
+            const t_expo = parseFloat(document.getElementById('t_expo').value);
+            const many = parseInt(document.getElementById('many').value);
+            const alerts = JSON.parse(document.getElementById('alerts').value);
 
-        // Initialize Pyodide
-        async function initializePyodide() {
-            document.getElementById('loadingIndicator').style.display = 'block';
-            
-            pyodide = await loadPyodide({
-                indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/"
-            });
-            
-            // Install required packages
-            await pyodide.loadPackage(["numpy", "pandas", "astropy"]);
-            
-            // Load all the Python functions
-            await pyodide.runPython(`
-                import numpy as np
-                import pandas as pd
-                from astropy.time import Time
-                from astropy import units as u
-                from astropy.coordinates import SkyCoord, EarthLocation, AltAz
-                
-                def delta_time(date_i, date_f, t_scale):
-                    scale = t_scale[0]
-                    sc = t_scale[1]
-                    
-                    a = Time(date_i, format='iso', scale='utc').datetime.hour-24
-                    b = Time(date_f, format='iso', scale='utc').datetime.hour
-                    
-                    if scale == 's':
-                        length = int((b-a)/ (sc/3600))
-                        t_ = np.linspace(a, b, length) 
-                   
-                    if scale == 'm':
-                        length = int((b-a)/ (sc/60))
-                        t_ = np.linspace(a, b, length)
-                    
-                    if scale == 'h':
-                        length = int((b-a)/ sc)
-                        t_ = np.linspace(a, b, length)
-                    
-                    return t_
-                
-                def create_time(date_i, date_f, t_scale):
-                    time_midnight = Time(Time(date_i, format='iso', scale='utc').iso.split()[0] + ' 00:00:00', format='iso', scale='utc')
-                    delta = delta_time(date_i, date_f, t_scale) * u.hour
-                    return time_midnight + delta
-                
-                def observations(observer, alert, date_i, date_f, time_scale, rango, limit, m_min):
-                    # Convert alert data from JS to pandas DataFrame
-                    alert_df = pd.DataFrame(alert)
-                    
-                    # Definition of different variables:
-                    time = create_time(date_i, date_f, time_scale)  # return an array
-                    
-                    lat_conv, lon_conv = observer
-                    observer_loc = EarthLocation(lat=lat_conv*u.deg, lon=lon_conv*u.deg)
-                    
-                    # Lists of data for post-analysis
-                    big_data = []
-                    
-                    # Give the label of identification of each object
-                    alert_df['Label'] = range(1, rango+1)
-                    
-                    # Give the conditional for the minimum observation
-                    alert_df['V mag'] = alert_df['Mag'] <= m_min
-                    
-                    # Get off which cannot be visible and drop that column because it's just an indicator
-                    alert_df = alert_df[alert_df['V mag'] != False].drop(['V mag'], axis=1)
-                    
-                    # Establish the time slot
-                    for each_time in time:
-                        # For each time slot we need the data of the conditional about observations
-                        
-                        # Establish the coordinates with the correction from geocentric calculations of astropy
-                        celestial_coord = SkyCoord(ra=alert_df['RA']*u.deg, dec=alert_df['DEC']*u.deg)
-                        
-                        # Calculate the coordinates AltAz for the time and observer
-                        altaz_coord = celestial_coord.transform_to(AltAz(obstime=each_time, location=observer_loc)) 
-                    
-                        # Determine if it's observable (altitude > limit degrees)
-                        state = altaz_coord.alt > limit*u.deg
-                        
-                        # Put everything together
-                        alert_df['Observable'] = state
-                        alert_df['Az'] = altaz_coord.az.deg
-                        alert_df['Alt'] = altaz_coord.alt.deg
-                        
-                        # Put the conditionals of a time slot in a dataframe
-                        data = alert_df.copy()
-                        
-                        # Put the dataframe in a list with the values of time
-                        big_data.append(data) 
-                    
-                    # Concatenate all the observations
-                    final_data = pd.concat(big_data, axis=0)
-                    return final_data
-                
-                def exposition_time(K, m, m_ref):
-                    return K * (10 ** (0.4 * (m - m_ref)))
-                
-                def order_limits(data, rango, time, general_time, t_expo, K, m_ref):
-                    targets = []
-                    order = [] 
-                    
-                    for i in range(1, rango+1):
-                        # Organize and add time to the dataframe
-                        target = data.loc[data['Label'] == i].copy()
-                        if target.empty:
-                            continue
-                        
-                        target['Time'] = time
-                        target['Time expo'] = exposition_time(K, target['Mag'], m_ref)
-                        target = target[(target['Observable'] != False) & (target['Time expo'] <= t_expo)]
-                        
-                        # Take from dataframe just the observables
-                        if not target.empty:
-                            targets.append(target)
-                    
-                    if not targets:
-                        return [], pd.DataFrame()
-                    
-                    # Concatenate everything for better analysis
-                    obs = pd.concat(targets, axis=0).reset_index(drop=True).drop(['Observable'], axis=1)
-                    
-                    # Determine the flag variables for the cycle
-                    first_target = obs[obs['Time'] == time[0]]
-                    if not first_target.empty:
-                        first_target = first_target.sort_values(by='Alt', ascending=False, na_position='first').head(1)
-                        first_target['Time'] = general_time[0]
-                        order.append(first_target)
-                        
-                        time_flag = general_time[0] + first_target['Time expo'].iloc[0] * u.second
-                        position_flag = first_target
-                    else:
-                        time_flag = general_time[0]
-                        position_flag = pd.DataFrame()
-                    
-                    # Establish the order of observation by highest altitude and time exposition
-                    for i in range(1, len(time)):
-                        # Organize by highest altitude
-                        priority = obs.loc[obs['Time'] == time[i]].sort_values('Alt', ascending=False, na_position='first').head(1)
-                        current_time = general_time[i]
-                        
-                        # Skip if empty
-                        if priority.empty:
-                            continue
-                        
-                        # Set the time for the observable
-                        priority['Time'] = current_time
-                        
-                        if not priority.empty:
-                            if time_flag >= current_time:
-                                if not position_flag.empty and position_flag['Label'].iloc[0] == priority['Label'].iloc[0]:
-                                    order.append(priority)
-                                else:
-                                    position_flag['Time'] = current_time
-                                    order.append(position_flag)
-                            else:
-                                order.append(priority)
-                                time_flag = current_time + priority['Time expo'].iloc[0] * u.second
-                                position_flag = priority
-                    
-                    # Prepare the final dataframe
-                    order_df = pd.concat(order, axis=0).reset_index(drop=True).drop(['Az','Alt'], axis=1)
-                    return targets, order_df
-            `);
-            
-            document.getElementById('loadingIndicator').style.display = 'none';
-            document.getElementById('appContent').style.display = 'block';
+            // Simulación del DataFrame de salida (en realidad, esto se generaría con Python)
+            const simulatedData = [
+                { Label: 1, RA: 120.5, DEC: 18.3, Mag: 9.5, 'Time expo': 45, Time: '2024-01-01 20:00:00' },
+                { Label: 2, RA: 130.2, DEC: 22.1, Mag: 8.7, 'Time expo': 60, Time: '2024-01-01 21:00:00' },
+            ];
+
+            // Mostrar resultados en una tabla HTML
+            let html = '<table><thead><tr>';
+            if (simulatedData.length > 0) {
+                // Crear encabezados
+                Object.keys(simulatedData[0]).forEach(key => {
+                    html += `<th>${key}</th>`;
+                });
+                html += '</tr></thead><tbody>';
+
+                // Llenar datos
+                simulatedData.forEach(row => {
+                    html += '<tr>';
+                    Object.values(row).forEach(val => {
+                        html += `<td>${val}</td>`;
+                    });
+                    html += '</tr>';
+                });
+                html += '</tbody></table>';
+            } else {
+                html = '<p>No hay observaciones disponibles con los parámetros dados.</p>';
+            }
+
+            document.getElementById('dataframeResult').innerHTML = html;
         }
-        
-        // Initialize on page load
-        initializePyodide();
-        
-        // Tab switching
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
-        }
-        
-        // Form handlers
-        document.getElementById('deltaTimeForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            if (!pyodide) {
-                alert("Pyodide is still loading. Please wait.");
-                return;
-            }
-            
-            const date_i = document.getElementById('deltaDate_i').value;
-            const date_f = document.getElementById('deltaDate_f').value;
-            const scale = document.getElementById('deltaTimeScale').value;
-            const scaleValue = parseFloat(document.getElementById('deltaScaleValue').value);
-            
-            try {
-                const result = await pyodide.runPython(`
-                    delta_time("${date_i}", "${date_f}", ("${scale}", ${scaleValue})).tolist()
-                `);
-                
-                document.getElementById('deltaTimeResult').innerHTML = `
-                    <h3>Result:</h3>
-                    <p>Time array (hours from midnight):</p>
-                    <pre>${JSON.stringify(result, null, 2)}</pre>
-                `;
-            } catch (error) {
-                document.getElementById('deltaTimeResult').innerHTML = `
-                    <h3>Error:</h3>
-                    <pre>${error}</pre>
-                `;
-            }
-        });
-        
-        document.getElementById('createTimeForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            if (!pyodide) {
-                alert("Pyodide is still loading. Please wait.");
-                return;
-            }
-            
-            const date_i = document.getElementById('createDate_i').value;
-            const date_f = document.getElementById('createDate_f').value;
-            const scale = document.getElementById('createTimeScale').value;
-            const scaleValue = parseFloat(document.getElementById('createScaleValue').value);
-            
-            try {
-                const result = await pyodide.runPython(`
-                    times = create_time("${date_i}", "${date_f}", ("${scale}", ${scaleValue}))
-                    [t.iso for t in times]
-                `);
-                
-                document.getElementById('createTimeResult').innerHTML = `
-                    <h3>Result:</h3>
-                    <p>Time array around midnight:</p>
-                    <pre>${JSON.stringify(result, null, 2)}</pre>
-                `;
-            } catch (error) {
-                document.getElementById('createTimeResult').innerHTML = `
-                    <h3>Error:</h3>
-                    <pre>${error}</pre>
-                `;
-            }
-        });
-        
-        document.getElementById('observationsForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            if (!pyodide) {
-                alert("Pyodide is still loading. Please wait.");
-                return;
-            }
-            
-            const lat = parseFloat(document.getElementById('obsLat').value);
-            const lon = parseFloat(document.getElementById('obsLon').value);
-            const date_i = document.getElementById('obsDate_i').value;
-            const date_f = document.getElementById('obsDate_f').value;
-            const scale = document.getElementById('obsTimeScale').value;
-            const scaleValue = parseFloat(document.getElementById('obsScaleValue').value);
-            const rango = parseInt(document.getElementById('obsRange').value);
-            const limit = parseFloat(document.getElementById('obsLimit').value);
-            const m_min = parseFloat(document.getElementById('obsMmin').value);
-            
-            // Parse CSV data
-            const csvData = document.getElementById('alertData').value;
-            const parsed = Papa.parse(csvData, { header: true });
-            const alertData = parsed.data;
-            
-            try {
-                // Convert data to Python
-                await pyodide.runPython(`
-                    import js
-                    alert_data = js.alertData.to_py()
-                `, { alertData });
-                
-                // Run observations function
-                const result = await pyodide.runPython(`
-                    obs_result = observations((${lat}, ${lon}), alert_data, "${date_i}", "${date_f}", 
-                                           ("${scale}", ${scaleValue}), ${rango}, ${limit}, ${m_min})
-                    # Convert to dictionary for JSON serialization
-                    obs_result.to_dict('records')
-                `);
-                
-                observationData = result; // Store for use in order_limits
-                
-                document.getElementById('observationsResult').innerHTML = `
-                    <h3>Result:</h3>
-                    <p>Observable objects:</p>
-                    <pre>${JSON.stringify(result, null, 2)}</pre>
-                `;
-            } catch (error) {
-                document.getElementById('observationsResult').innerHTML = `
-                    <h3>Error:</h3>
-                    <pre>${error}</pre>
-                `;
-            }
-        });
-        
-        document.getElementById('expositionTimeForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            if (!pyodide) {
-                alert("Pyodide is still loading. Please wait.");
-                return;
-            }
-            
-            const K = parseFloat(document.getElementById('expK').value);
-            const m = parseFloat(document.getElementById('expM').value);
-            const m_ref = parseFloat(document.getElementById('expMref').value);
-            
-            try {
-                const result = await pyodide.runPython(`
-                    exposition_time(${K}, ${m}, ${m_ref})
-                `);
-                
-                document.getElementById('expositionTimeResult').innerHTML = `
-                    <h3>Result:</h3>
-                    <p>Exposition time: ${result.toFixed(2)} seconds</p>
-                `;
-            } catch (error) {
-                document.getElementById('expositionTimeResult').innerHTML = `
-                    <h3>Error:</h3>
-                    <pre>${error}</pre>
-                `;
-            }
-        });
-        
-        document.getElementById('orderLimitsForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            if (!pyodide) {
-                alert("Pyodide is still loading. Please wait.");
-                return;
-            }
-            
-            if (!observationData) {
-                alert("Please run the Observations function first to get the data.");
-                return;
-            }
-            
-            const rango = parseInt(document.getElementById('orderRange').value);
-            const t_expo = parseFloat(document.getElementById('orderTexp').value);
-            const K = parseFloat(document.getElementById('orderK').value);
-            const m_ref = parseFloat(document.getElementById('orderMref').value);
-            
-            try {
-                // Get time arrays
-                const date_i = document.getElementById('obsDate_i').value;
-                const date_f = document.getElementById('obsDate_f').value;
-                const scale = document.getElementById('obsTimeScale').value;
-                const scaleValue = parseFloat(document.getElementById('obsScaleValue').value);
-                
-                // Run order_limits function
-                const result = await pyodide.runPython(`
-                    # Get time arrays
-                    time_array = delta_time("${date_i}", "${date_f}", ("${scale}", ${scaleValue}))
-                    general_time = create_time("${date_i}", "${date_f}", ("${scale}", ${scaleValue}))
-                    
-                    # Convert observation data back to DataFrame
-                    import pandas as pd
-                    obs_data = pd.DataFrame(${JSON.stringify(observationData)})
-                    
-                    # Run order_limits
-                    targets, order = order_limits(obs_data, ${rango}, time_array, general_time, ${t_expo}, ${K}, ${m_ref})
-                    
-                    # Convert results to serializable format
-                    {
-                        'targets': [t.to_dict('records') for t in targets],
-                        'order': order.to_dict('records')
-                    }
-                `);
-                
-                document.getElementById('orderLimitsResult').innerHTML = `
-                    <h3>Result:</h3>
-                    <h4>Targets:</h4>
-                    <pre>${JSON.stringify(result.targets, null, 2)}</pre>
-                    <h4>Observation Order:</h4>
-                    <pre>${JSON.stringify(result.order, null, 2)}</pre>
-                `;
-            } catch (error) {
-                document.getElementById('orderLimitsResult').innerHTML = `
-                    <h3>Error:</h3>
-                    <pre>${error}</pre>
-                `;
-            }
-        });
     </script>
 </body>
-</html>
+</html> -->
