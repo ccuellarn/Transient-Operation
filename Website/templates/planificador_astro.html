@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -144,7 +144,7 @@
             <div class="logo">
                 <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo Astronómico" style="max-width:100%; max-height:100%;">
             </div>
-            <h1>Planificador de Observación Astronómica</h1>
+            <h1>Planner for Astronomical Observations</h1>
         </div>
         
         {% if error %}
@@ -157,115 +157,116 @@
             <form method="POST" action="/">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="latitud">Latitud del Observador (grados):</label>
+                        <label for="latitud">Observer Latitude (degree):</label>
                         <input type="number" step="0.001" id="latitud" name="latitud" value="4.609" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="longitud">Longitud del Observador (grados):</label>
+                        <label for="longitud">Observer Longitude (degree):</label>
                         <input type="number" step="0.001" id="longitud" name="longitud" value="-74.081" required>
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="fecha_inicio">Fecha y Hora de Inicio:</label>
+                        <label for="fecha_inicio">Start Date and Time:</label>
                         <input type="datetime-local" id="fecha_inicio" name="fecha_inicio" value="2025-03-13T19:00" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="fecha_fin">Fecha y Hora de Fin:</label>
+                        <label for="fecha_fin">End Date and Time:</label>
                         <input type="datetime-local" id="fecha_fin" name="fecha_fin" value="2025-03-14T07:00" required>
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="escala_tiempo_unidad">Escala de Tiempo (unidad):</label>
+                        <label for="escala_tiempo_unidad">Time Scale:</label>
                         <select id="escala_tiempo_unidad" name="escala_tiempo_unidad" required>
-                            <option value="s">Segundos</option>
-                            <option value="m" selected>Minutos</option>
-                            <option value="h">Horas</option>
+                            <option value="s">Seconds</option>
+                            <option value="m" selected>Minutes</option>
+                            <option value="h">Hours</option>
                         </select>
                     </div>
                     
                     <div class="form-group">
-                        <label for="escala_tiempo_valor">Escala de Tiempo (valor):</label>
+                        <label for="escala_tiempo_valor">Value of Time Scale:</label>
                         <input type="number" id="escala_tiempo_valor" name="escala_tiempo_valor" min="5" value="30" required>
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="limite_altitud">Límite de Altitud para Observación (grados):</label>
+                        <label for="limite_altitud">Altitude Limit for Optimum Observation (degrees):</label>
                         <input type="number" id="limite_altitud" name="limite_altitud" min="0" max="90" value="33" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="magnitud_minima">Magnitud Mínima del Telescopio:</label>
+                        <label for="magnitud_minima">Minimum Magnitude of Telescope:</label>
                         <input type="number" id="magnitud_minima" name="magnitud_minima" value="30" required>
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="parametro_k">Parámetro K:</label>
+                        <label for="parametro_k">Parameter K:</label>
                         <input type="number" id="parametro_k" name="parametro_k" value="10" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="magnitud_referencia">Magnitud de Referencia (m_ref):</label>
+                        <label for="magnitud_referencia">Reference Magnitude for Exposure Time:</label>
                         <input type="number" id="magnitud_referencia" name="magnitud_referencia" value="10" required>
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="tiempo_exposicion">Tiempo Mínimo de Exposición (segundos):</label>
+                    <label for="tiempo_exposicion">Telescope Minimum Exposure Time (seconds):</label>
                     <input type="number" id="tiempo_exposicion" name="tiempo_exposicion" min="1" value="30" required>
                 </div>
+
+  ---------------------------------------------------------------------------  -->
                 
-                <div class="alert-section">
-                    <h3>Alertas de Objetos Astronómicos</h3>
+                <!-- <div class="alert-section">
+                    <h3>Targets of Astronomical Observations</h3>
                     <div id="alertas-container">
                         <div class="form-row alerta-objeto">
                             <div class="form-group">
-                                <label>Nombre del Objeto:</label>
+                                <label>Object name:</label>
                                 <input type="text" name="nombre_objeto[]" value="ATKFRLD" required>
                             </div>
                             <div class="form-group">
-                                <label>Ascensión Recta (RA):</label>
+                                <label>Right Ascention (RA):</label>
                                 <input type="text" name="ra_objeto[]" value="09h21m58.31s" required>
                             </div>
                             <div class="form-group">
-                                <label>Declinación (DEC):</label>
+                                <label>Declination (DEC):</label>
                                 <input type="text" name="dec_objeto[]" value="+24d39m47.46s" required>
                             </div>
                             <div class="form-group">
-                                <label>Magnitud:</label>
+                                <label>Magnitude:</label>
                                 <input type="number" step="0.01" name="mag_objeto[]" value="-7.59" required>
                             </div>
                         </div>
                     </div>
-                    <button type="button" id="agregar-objeto">Añadir Otro Objeto</button>
+                    <button type="button" id="agregar-objeto">Add Another Target</button>
                 </div>
                 
-                <button type="submit">Generar Plan de Observación</button>
+                <button type="submit">Generate Observation Plan</button>
             </form>
         </div>
         
         {% if datos_tabla %}
         <div class="results">
-            <h2>Plan de Observación Generado</h2>
+            <h2>Observation Plan Generated</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>Hora</th>
-                        <th>Objeto</th>
+                        <th>Hour</th>
+                        <th>Target</th>
                         <th>RA</th>
                         <th>DEC</th>
-                        <th>Magnitud</th>
-                        <th>Tiempo Exposición</th>
-                        <th>Prioridad</th>
+                        <th>Magnitude</th>
+                        <th>Exposition Time</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -277,27 +278,23 @@
                         <td>{{ fila.dec }}</td>
                         <td>{{ fila.magnitud }}</td>
                         <td>{{ fila.tiempo_exposicion }}</td>
-                        <td>{{ fila.prioridad }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
         {% endif %}
+
+
         
+
         <div class="footer">
-            <p>Planificador de Observación Astronómica &copy; {{ año_actual }}</p>
+            <p>Rights Reserved &copy; {{ año_actual }}</p>
         </div>
     </div>
 
-    <!-- {% if plot_url %}
-    <div class="graph-container">
-        <h3>Visualización de Altitud</h3>
-        <img src="{{ plot_url }}" alt="Gráfico de altitud">
-    </div>
-    {% endif %} -->
-
     <script>
+
         document.getElementById('agregar-objeto').addEventListener('click', function() {
             const container = document.getElementById('alertas-container');
             const newAlert = document.createElement('div');
@@ -331,4 +328,4 @@
         });
     </script>
 </body>
-</html>
+</html> --> 
