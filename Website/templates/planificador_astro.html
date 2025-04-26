@@ -1,9 +1,9 @@
-<!-- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planificador de Observación Astronómica</title>
+    <title>Planner of Astronomical Observations</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -154,7 +154,7 @@
         {% endif %}
         
         <div class="form-container">
-            <form method="POST" action="/">
+            <form method="POST" action="/" enctype="multipart/form-data">
                 <div class="form-row">
                     <div class="form-group">
                         <label for="latitud">Observer Latitude (degree):</label>
@@ -224,10 +224,18 @@
                     <input type="number" id="tiempo_exposicion" name="tiempo_exposicion" min="1" value="30" required>
                 </div>
 
-  ---------------------------------------------------------------------------  -->
-                
-                <!-- <div class="alert-section">
+ <div class="alert-section">
                     <h3>Targets of Astronomical Observations</h3>
+
+                    <div class="form-group">
+                        <label>Modo de ingreso:</label>
+                        <select id="modo_ingreso" onchange="toggleInputMode()">
+                            <option value="manual">Ingreso Manual</option>
+                            <option value="csv">Cargar CSV</option>
+                        </select>
+                    </div>
+
+                    <div id="manual-input">
                     <div id="alertas-container">
                         <div class="form-row alerta-objeto">
                             <div class="form-group">
@@ -250,7 +258,15 @@
                     </div>
                     <button type="button" id="agregar-objeto">Add Another Target</button>
                 </div>
-                
+            
+                <div id="csv-input" style="display: none;">
+                    <div class="form-group">
+                        <label>Subir archivo CSV:</label>
+                        <input type="file" id="csv_file" name="csv_file" accept=".csv">
+                        <small>El CSV debe tener columnas: nombre,ra,dec,magnitud</small>
+                    </div>
+                </div>
+            </div>
                 <button type="submit">Generate Observation Plan</button>
             </form>
         </div>
@@ -286,14 +302,31 @@
         {% endif %}
 
 
-        
-
         <div class="footer">
             <p>Rights Reserved &copy; {{ año_actual }}</p>
         </div>
     </div>
 
     <script>
+
+        // Alternar entre modos de entrada
+    function toggleInputMode() {
+        const modo = document.getElementById('modo_ingreso').value;
+        document.getElementById('manual-input').style.display = modo === 'manual' ? 'block' : 'none';
+        document.getElementById('csv-input').style.display = modo === 'csv' ? 'block' : 'none';
+    }
+
+    // Agregar evento al formulario para validar CSV
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const modo = document.getElementById('modo_ingreso').value;
+        if (modo === 'csv') {
+            const fileInput = document.getElementById('csv_file');
+            if (fileInput.files.length === 0) {
+                e.preventDefault();
+                alert('Por favor selecciona un archivo CSV');
+            }
+        }
+    });
 
         document.getElementById('agregar-objeto').addEventListener('click', function() {
             const container = document.getElementById('alertas-container');
@@ -328,4 +361,4 @@
         });
     </script>
 </body>
-</html> --> 
+</html>  
