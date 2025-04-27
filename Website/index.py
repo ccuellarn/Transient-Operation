@@ -18,6 +18,7 @@ app = Flask(__name__)
 def index():
     datos_tabla = None
     plot_url = None
+    plot_url_altaz = None 
     alertas = None
     error = None
     
@@ -150,13 +151,74 @@ def index():
             plot_url = base64.b64encode(buffer.getvalue()).decode('utf-8')
             plt.close()  # Cerrar la figura para liberar memoria
 
+            # # --- Segunda gráfica (Alt/Az) SOLO si <10 alertas ---
+            # if len(names) < 10:  # Mostrar solo si menos de 10 objetos
+            #     graphic = Graphic(data_observations, many, time_array)
+                    
+            #     if graphic:
+            #         plt.figure(figsize=(11, 7))
+            #         ordertime = []
+            #         min_alt = []
+            #         max_alt = []
+            #         orderlabels = [i for i in order['Label'].drop_duplicates()]
+
+            #         for i in orderlabels: 
+            #             hour_i = order.loc[order['Label']==i].head(1)['Time'].iloc[0].datetime.hour
+            #             hour_f = order.loc[order['Label']==i].tail(1)['Time'].iloc[0].datetime.hour
+    
+            #             hour_i = hour_i - 24 if 13 <= hour_i <= 23 else hour_i
+            #             hour_f = hour_f - 24 if 13 <= hour_f <= 23 else hour_f
         
+            #             ordertime.append((float(hour_i), float(hour_f)))
+
+
+            #         for each in graphic:
+            #             if each['Label'].iloc[0] in orderlabels:
+
+            #                 ALT = np.array(each['Alt'].tolist(), dtype=float)
+            #                 AZ = np.array(each['Az'].tolist(), dtype=float)
+            #                 T = np.array([t.datetime.hour for t in each['Time']], dtype=float)
+
+            #                 plt.scatter(T, ALT,c=AZ,cmap="viridis",lw=1)
+
+            #                 for j, alt in enumerate(ALT):
+            #                     plt.annotate(str(each['Label'].iloc[0]), (T[j], alt + 1), color='k')        
+
+            #                 min_alt.append(min(ALT))
+            #                 max_alt.append(max(ALT))
+
+            #         # Limits of good observations
+            #         plt.plot(time_array, [limite_altitud] * len(time_array), '--', color='grey')
+            #         #Details
+            #         plt.colorbar().set_label("Azimuth [deg]")
+            #         plt.xlabel("Hours around Midnight")
+            #         plt.ylabel("Altitude [deg]")
+
+            #         # time
+            #         for each in ordertime:
+            #             plt.plot([each[0]] * len(np.linspace(min(min_alt),max(max_alt), len(time_array))), np.linspace(min(min_alt),max(max_alt), len(time_array)), '--', color='orange')
+            #             plt.plot([each[1]] * len(np.linspace(min(min_alt),max(max_alt),len(time_array))), np.linspace(min(min_alt),max(max_alt), len(time_array)), '--', color='salmon')
+
+            #         plt.text( each[0],min(min_alt), 'S', color='orange')
+            #         plt.text( each[1],min(min_alt), 'F',color='salmon')
+
+            #         #Exes
+            #         hours = [str(round(num + 24,1)) if num < 0 else str(round(num,1)) for num in np.array([-6,-4,-2,0,2,4,6])]
+            #         plt.xticks(np.array([-6,-4,-2,0,2,4,6]), hours)
+            #         plt.title('Starting time {}\n Location: ({} , {})'.format(date_i,observer[0],observer[1]))
+
+
+            #         buffer_altaz = BytesIO()
+            #         plt.savefig(buffer_altaz, format='png')
+            #         plot_url_altaz = base64.b64encode(buffer_altaz.getvalue()).decode('utf-8')
+            #         plt.close()
             
 
     return render_template('planificador_astro.html',
                         error=error, 
                          datos_tabla=datos_tabla,
                          plot_url=plot_url,
+                         plot_url_altaz=plot_url_altaz,
                          año_actual=datetime.now().year)
 
 
@@ -181,6 +243,26 @@ def DeltaTime(Date_i, Date_f, t_scale):
         t_ = np.linspace(a, b, len_)
     
     return t_
+
+#Graphic
+def Graphic(Data,rango,Time):
+    targets = []
+
+    for i in range(1,rango):
+        Target = Data.loc[Data['Label'] == i].copy()
+        if Target.empty:
+            continue
+        
+        Target['Time'] = Time
+        Target = Target[Target['Observable'] != False]
+
+        if not Target.empty:
+            targets.append(Target)
+
+    if not targets:
+        return [], pd.DataFrame()
+    
+    return targets
 
 def CreateTime(Date_i, Date_f, t_scale):
     time_midnight = Time(Time(Date_i, format='iso', scale='utc').iso.split()[0] + ' 00:00:00', 

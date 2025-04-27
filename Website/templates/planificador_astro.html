@@ -310,6 +310,18 @@
     </div>
         {% endif %}
 
+        <!-- {% if plot_url_altaz is defined and plot_url_altaz and (datos_tabla|length < 10) %}
+<div class="altaz-graph" style="margin-top: 30px;">
+    <h3>Evolución Altitud/Azimut</h3>
+    <img src="data:image/png;base64,{{ plot_url_altaz }}" 
+         alt="Gráfica Alt/Az"
+         style="max-width: 100%; border: 1px solid #ddd;">
+    <p class="graph-caption">
+        Visualización disponible para menos de 10 objetos
+    </p>
+</div>
+{% endif %} -->
+
 
         <div class="footer">
             <p>Rights Reserved &copy; {{ año_actual }}</p>
