@@ -6,7 +6,7 @@
     <title>Planner of Astronomical Observations</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: Tahoma, Verdana;
             background-image: url('https://www.transparenttextures.com/patterns/starry-night.png');
             margin: 0;
             padding: 20px;
@@ -25,7 +25,7 @@
             display: flex;
             align-items: center;
             margin-bottom: 20px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #242949;
             padding-bottom: 20px;
         }
         
@@ -41,7 +41,7 @@
         }
         
         h1 {
-            color: #1a237e;
+            color: #242949;
             margin: 0;
             flex-grow: 1;
         }
@@ -79,7 +79,7 @@
         }
         
         button {
-            background-color: #1a237e;
+            background-color: #242949;
             color: white;
             border: none;
             padding: 10px 15px;
@@ -90,7 +90,7 @@
         }
         
         button:hover {
-            background-color: #303f9f;
+            background-color: #242949;
         }
         
         table {
@@ -106,7 +106,7 @@
         }
         
         th {
-            background-color: #1a237e;
+            background-color: #242949;
             color: white;
         }
         
@@ -124,7 +124,7 @@
         .alert-section {
             margin-top: 20px;
             padding: 15px;
-            background-color: #fff8e1;
+            background-color: #8cdedb;
             border-radius: 5px;
         }
         
@@ -209,7 +209,7 @@
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="parametro_k">Parameter K:</label>
+                        <label for="parametro_k">Parameter K (seconds):</label>
                         <input type="number" id="parametro_k" name="parametro_k" value="10" required>
                     </div>
                     
@@ -228,10 +228,10 @@
                     <h3>Targets of Astronomical Observations</h3>
 
                     <div class="form-group">
-                        <label>Modo de ingreso:</label>
+                        <label>Entry Mode:</label>
                         <select id="modo_ingreso" onchange="toggleInputMode()">
-                            <option value="manual">Ingreso Manual</option>
-                            <option value="csv">Cargar CSV</option>
+                            <option value="manual">Manual Entry</option>
+                            <option value="csv">Upload CSV</option>
                         </select>
                     </div>
 
@@ -261,9 +261,9 @@
             
                 <div id="csv-input" style="display: none;">
                     <div class="form-group">
-                        <label>Subir archivo CSV:</label>
+                        <label>Upload CSV file:</label>
                         <input type="file" id="csv_file" name="csv_file" accept=".csv">
-                        <small>El CSV debe tener columnas: nombre,ra,dec,magnitud</small>
+                        <small>The format for the CSV file must be: Name (text), RA (HHMMSS), DEC (DDMMSS), Magnitude (number)</small>
                     </div>
                 </div>
             </div>
@@ -278,6 +278,7 @@
                 <thead>
                     <tr>
                         <th>Hour</th>
+                        <th>Label</th>
                         <th>Target</th>
                         <th>RA</th>
                         <th>DEC</th>
@@ -289,6 +290,7 @@
                     {% for fila in datos_tabla %}
                     <tr>
                         <td>{{ fila.hora }}</td>
+                        <td>{{ fila.label }}</td>
                         <td>{{ fila.objeto }}</td>
                         <td>{{ fila.ra }}</td>
                         <td>{{ fila.dec }}</td>
@@ -299,6 +301,13 @@
                 </tbody>
             </table>
         </div>
+        {% endif %}
+
+        {% if plot_url %}
+    <div class="grafica-container">
+        <h3>Celestial Positions</h3>
+        <img src="data:image/png;base64,{{ plot_url }}" alt="Gráfica de observación" class="img-fluid">
+    </div>
         {% endif %}
 
 

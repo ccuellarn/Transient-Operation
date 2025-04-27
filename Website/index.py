@@ -4,9 +4,11 @@ import numpy as np
 import pandas as pd
 from astropy.time import Time
 from astropy import units as u
-from astropy.coordinates import SkyCoord, EarthLocation, AltAz
+from astropy.coordinates import SkyCoord, EarthLocation, AltAz, Angle
 import matplotlib.pyplot as plt
 import io
+import base64
+from io import BytesIO
 from matplotlib import cm
 from astropy.visualization import astropy_mpl_style, quantity_support
 
@@ -113,6 +115,7 @@ def index():
             for _, row in order.iterrows():
                 datos_tabla.append({
                     'hora': Time(row['Time'], format='iso').iso.split()[1][:8],
+                    'label': row['Label'],
                     'objeto': row['Name'],
                     'ra': row['RA'],
                     'dec': row['DEC'],
@@ -120,6 +123,34 @@ def index():
                     'tiempo_exposicion': f"{row['Time expo']:2f}s"
 
                 })
+
+            # Generar la gráfica
+            names = [i for i in order['Name'].drop_duplicates()]
+            ra = [Angle(i, unit=u.deg).degree for i in order['RA'].drop_duplicates()]
+            dec = [Angle(i, unit=u.deg).degree for i in order['DEC'].drop_duplicates()]
+            
+
+            plt.figure(figsize=(9, 7))
+            plt.title('Starting time {}\n Location: ({} , {})'.format(date_i, observer[0], observer[1]))
+            plt.scatter(ra, dec, color='blue', marker='*', s=80)
+                
+            for i in range(0, len(dec)):
+                plt.text(ra[i]+0.3, dec[i], str(names[i]), color='grey')
+                plt.text(ra[i]-0.2, dec[i], str(i+1), color='k')
+                
+            plt.ylabel(r"Declination [deg]", fontsize=14)
+            plt.xlabel(r'Right ascension [deg]', fontsize=14)
+            plt.grid(True)
+            plt.tight_layout()
+
+            # Convertir la gráfica a imagen base64
+            buffer = BytesIO()
+            plt.savefig(buffer, format='png')
+            buffer.seek(0)
+            plot_url = base64.b64encode(buffer.getvalue()).decode('utf-8')
+            plt.close()  # Cerrar la figura para liberar memoria
+
+        
             
 
     return render_template('planificador_astro.html',
@@ -183,26 +214,6 @@ def Observations(observer, alert, Date_i, Date_f, time_scale, rango, limit, m_mi
 
 def ExpositionTime(K, m, m_ref):
     return K*(10**(0.4*(m - m_ref)))
-
-#Graphic
-def Graphic(Data,rango,Time):
-    targets = []
-
-    for i in range(1,rango):
-        Target = Data.loc[Data['Label'] == i].copy()
-        if Target.empty:
-            continue
-        
-        Target['Time'] = Time
-        Target = Target[Target['Observable'] != False]
-
-        if not Target.empty:
-            targets.append(Target)
-
-    if not targets:
-        return [], pd.DataFrame()
-    
-    return targets
 
 def Order(Data, rango, Time, General_time, t_expo, K, m_ref):
     targets = []
