@@ -136,6 +136,12 @@
             margin-bottom: 20px;
             border-left: 4px solid #d32f2f;
         }
+        .img-fluid {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+        }
     </style>
 </head>
 <body>
@@ -211,16 +217,17 @@
                     <div class="form-group">
                         <label for="parametro_k">Parameter K (seconds):</label>
                         <input type="number" id="parametro_k" name="parametro_k" value="10" required>
-                    </div>
+                    </div>   
                     
                 </div>
+                
 
  <div class="alert-section">
                     <h3>Targets of Astronomical Observations</h3>
 
                     <div class="form-group">
                         <label>Entry Mode:</label>
-                        <select id="modo_ingreso" onchange="toggleInputMode()">
+                        <select id="modo_ingreso" name="modo_ingreso" onchange="toggleInputMode()">
                             <option value="manual">Manual Entry</option>
                             <option value="csv">Upload CSV</option>
                         </select>
@@ -300,8 +307,6 @@
         <img src="data:image/png;base64,{{ plot_url }}" alt="Gráfica de observación" class="img-fluid">
     </div>
         {% endif %}
-
-
 
 
         <div class="footer">
